@@ -6,30 +6,22 @@ pool:
 
 steps:
 
-- task: AzureCLI@2
+- task: Docker@2
   inputs:
-    azureSubscription: 'Towards-AzurePortal'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      docker build -t mylabacr13.azurecr.io/web-game:tag 2048-game
-      az acr login -n mylabacr13
-      docker push mylabacr13.azurecr.io/web-game:tag
-
-- script: cat 01_kubernetes_aks/app-deploy.yaml
-
-- task: Kubernetes@1
+    containerRegistry: 'acr2'
+    repository: 'lasyaacr'
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
+    arguments: '01_kubernetes_aks'
+- task: Docker@2
   inputs:
-    connectionType: 'Azure Resource Manager'
-    azureSubscriptionEndpoint: 'Towards-AzurePortal'
-    azureResourceGroup: 'TestLab-RG'
-    kubernetesCluster: 'testlab-aks'
-    namespace: 'default'
-    command: 'apply'
-    useConfigurationFile: true
-    configuration: '01_kubernetes_aks'
-    secretType: 'dockerRegistry'
-    containerRegistryType: 'Azure Container Registry'
-    azureSubscriptionEndpointForSecrets: 'Towards-AzurePortal'
-    azureContainerRegistry: 'mylabacr13.azurecr.io'
-    forceUpdate: false
+    containerRegistry: 'acr2'
+    command: 'login'
+- task: Docker@2
+  inputs:
+    containerRegistry: 'acr2'
+    repository: 'lasyaacr'
+    command: 'push'
+    arguments: '01_kubernetes_aks'
+
+
